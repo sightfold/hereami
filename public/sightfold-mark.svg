@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120"><defs>
+<linearGradient id="e1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F5843C"></stop><stop offset="1" stop-color="#CA3E02"></stop></linearGradient>
+<linearGradient id="e2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#CA3E02"></stop><stop offset="1" stop-color="#7D2600"></stop></linearGradient>
+<linearGradient id="p1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0A6B4F"></stop><stop offset="1" stop-color="#02282C"></stop></linearGradient>
+<linearGradient id="p2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#054433"></stop><stop offset="1" stop-color="#043528"></stop></linearGradient>
+</defs>
+<polygon points="60,14 14,78 37,78 60,44" fill="url(#e2)"></polygon>
+<polygon points="60,14 106,78 83,78 60,44" fill="url(#e1)"></polygon>
+<polygon points="26,84 60,72 60,90 26,95" fill="url(#p1)"></polygon>
+<polygon points="60,72 94,84 94,95 60,90" fill="url(#p2)"></polygon>
+<polygon points="60,43 45,58 60,58" fill="#054433"></polygon>
+<polygon points="60,43 75,58 60,58" fill="#02282C"></polygon>
+<polygon points="45,58 60,73 60,58" fill="#02282C"></polygon>
+<polygon points="75,58 60,73 60,58" fill="#054433"></polygon>
+<circle cx="60" cy="58" r="6" fill="#F4EDE2"></circle>
+<circle cx="60" cy="58" r="2.6" fill="#CA3E02"></circle></svg>

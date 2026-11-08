@@ -25,7 +25,7 @@ const PaperProblem = () => (
       </h2>
       <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
         {problems.map(({ title, text }) => (
-          <div key={title} className="border-t border-line pt-4">
+          <div key={title} className="border-t border-pine/40 pt-4">
             <h3 className="font-medium">{title}</h3>
             <p className="mt-1 text-sm text-muted">{text}</p>
           </div>

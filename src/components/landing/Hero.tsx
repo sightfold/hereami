@@ -7,7 +7,8 @@ const Hero = () => (
   <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 sm:py-20 lg:grid-cols-2">
     <div>
       <h1 className="font-serif text-5xl leading-[1.05] tracking-tight sm:text-7xl">
-        Your church register, on every phone.
+        Your church <span className="text-ember">register</span>,{" "}
+        <span className="text-ember">on</span> every <span className="text-ember">phone</span>.
       </h1>
       <p className="mt-5 max-w-md text-base text-muted sm:text-lg">
         Workers check in as they arrive. Leaders see who&apos;s present, late or missing, live.

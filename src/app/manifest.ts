@@ -11,7 +11,7 @@ const manifest = (): MetadataRoute.Manifest => ({
   display: "standalone",
   orientation: "portrait",
   background_color: "#fafafa",
-  theme_color: "#4f46e5",
+  theme_color: "#161616",
   categories: ["lifestyle", "productivity"],
   icons: [
     { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

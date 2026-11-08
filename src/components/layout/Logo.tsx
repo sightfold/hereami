@@ -1,6 +1,6 @@
 "use client";
 
-import { HeartPulse } from "lucide-react";
+import AppMark from "@/components/layout/AppMark";
 import OrgMark from "@/components/layout/OrgMark";
 import { useAppSelector } from "@/store";
 import { selectActiveOrg } from "@/store/selectors";
@@ -14,9 +14,7 @@ const Logo = ({ platform }: { platform?: boolean }) => {
       {brand ? (
         <OrgMark name={brand.name} logo={brand.logo} />
       ) : (
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand text-brand-fg">
-          <HeartPulse className="size-4" />
-        </span>
+        <AppMark className="size-8 rounded-lg dark:ring-1 dark:ring-white/15" />
       )}
       <span className="truncate">{brand?.name ?? "Here Am I"}</span>
     </span>

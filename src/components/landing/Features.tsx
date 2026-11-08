@@ -48,7 +48,7 @@ const Features = () => (
       {features.map(({ icon: Icon, title, text }) => (
         <div key={title}>
           <span className="flex size-9 items-center justify-center rounded-lg bg-subtle">
-            <Icon className="size-4" />
+            <Icon className="size-4 text-pine" />
           </span>
           <h3 className="mt-3 font-medium">{title}</h3>
           <p className="mt-1 text-sm text-muted">{text}</p>

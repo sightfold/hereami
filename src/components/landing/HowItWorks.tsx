@@ -22,8 +22,8 @@ const HowItWorks = () => (
     <h2 className="font-serif text-4xl tracking-tight sm:text-5xl">How it works</h2>
     <ol className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
       {steps.map(({ title, text }, index) => (
-        <li key={title}>
-          <span className="font-serif text-4xl text-muted">{index + 1}</span>
+        <li key={title} className="border-t-2 border-pine pt-3">
+          <span className="font-serif text-4xl text-ember">{index + 1}</span>
           <h3 className="mt-2 font-medium">{title}</h3>
           <p className="mt-1 text-sm text-muted">{text}</p>
         </li>
