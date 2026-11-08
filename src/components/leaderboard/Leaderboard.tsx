@@ -7,8 +7,13 @@ import PointRules from "@/components/leaderboard/PointRules";
 import RankRow from "@/components/leaderboard/RankRow";
 import Segmented from "@/components/ui/Segmented";
 import { useAppSelector } from "@/store";
-import { selectCurrentUser, selectRecords, selectServices, selectUsers } from "@/store/selectors";
-import { todayKey } from "@/utils/date";
+import {
+  selectCurrentUser,
+  selectRecords,
+  selectServices,
+  selectToday,
+  selectUsers,
+} from "@/store/selectors";
 import { rankStandings, servicesIn, type Period } from "@/utils/points";
 
 const periods: { value: Period; label: string }[] = [
@@ -23,7 +28,7 @@ const Leaderboard = () => {
   const records = useAppSelector(selectRecords);
   const [period, setPeriod] = useState<Period>("week");
 
-  const today = todayKey();
+  const today = useAppSelector(selectToday);
   const standings = rankStandings(users, servicesIn(services, period, today), records, today);
   const myStanding = standings.find((standing) => standing.user.id === me?.id);
   const isMe = (userId: string) => userId === me?.id;
@@ -36,7 +41,8 @@ const Leaderboard = () => {
           className="pointer-events-none absolute inset-x-0 -top-48 mx-auto h-96 max-w-2xl rounded-full bg-orange-600/40 blur-3xl"
         />
         <div className="relative">
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <PointRules />
             <Segmented
               label="Period"
               tone="gold"
@@ -70,10 +76,7 @@ const Leaderboard = () => {
           </ol>
         </div>
       </section>
-      <div className="grid gap-5 md:grid-cols-2">
-        {myStanding && <MyStanding standing={myStanding} />}
-        <PointRules />
-      </div>
+      {myStanding && <MyStanding standing={myStanding} />}
     </div>
   );
 };

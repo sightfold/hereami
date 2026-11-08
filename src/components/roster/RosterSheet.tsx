@@ -3,6 +3,7 @@ import { formatDay } from "@/utils/date";
 import type { Assignment, Department, Service, User } from "@/utils/types";
 
 type RosterSheetProps = {
+  orgName: string;
   service: Service;
   slots: Assignment[];
   userMap: Map<string, User>;
@@ -11,18 +12,24 @@ type RosterSheetProps = {
 };
 
 const rules = [
-  "Arrive by call time and check in on Heartbeat.",
+  "Arrive by call time and check in.",
   "Shift leads brief their department 15 minutes before service.",
   "Can't make it? Tell your shift lead at least 48 hours ahead.",
 ];
 
-const RosterSheet = ({ service, slots, userMap, departments, ref }: RosterSheetProps) => (
+const teamNames = (userMap: Map<string, User>, departmentId: string) =>
+  [...userMap.values()]
+    .filter((user) => user.departments.includes(departmentId))
+    .map((user) => user.name)
+    .join(", ") || "—";
+
+const RosterSheet = ({ orgName, service, slots, userMap, departments, ref }: RosterSheetProps) => (
   <div ref={ref} className="w-[800px] bg-white p-10 font-sans text-zinc-900">
     <div className="mb-6 flex items-end justify-between border-b-4 border-zinc-900 pb-4">
       <div>
-        <h1 className="font-serif text-5xl">Heartbeat</h1>
+        <h1 className="font-serif text-5xl">{orgName}</h1>
         <p className="mt-1 text-sm font-semibold uppercase tracking-widest text-zinc-500">
-          Media Department · Duty Roster
+          Duty Roster
         </p>
       </div>
       <div className="text-right text-sm">
@@ -38,6 +45,12 @@ const RosterSheet = ({ service, slots, userMap, departments, ref }: RosterSheetP
           <p className="rounded-t-lg bg-zinc-900 px-4 py-2 font-semibold text-white">
             {department.name}
           </p>
+          {department.roles.length === 0 && (
+            <div className="flex justify-between gap-4 border-t border-zinc-100 px-4 py-2 text-sm">
+              <span className="shrink-0 text-zinc-500">Everyone</span>
+              <span className="text-right font-medium">{teamNames(userMap, department.id)}</span>
+            </div>
+          )}
           {department.roles.map((role) => {
             const slot = slots.find(
               (item) => item.departmentId === department.id && item.role === role,

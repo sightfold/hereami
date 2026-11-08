@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ShieldCheck, UsersRound } from "lucide-react";
 import AwayGrid from "@/components/admin/AwayGrid";
+import ChildrenSummary from "@/components/children/ChildrenSummary";
 import DepartmentProgress from "@/components/admin/DepartmentProgress";
 import TopCard from "@/components/leaderboard/TopCard";
 import Greeting from "@/components/layout/Greeting";
@@ -19,13 +20,15 @@ import {
   selectCurrentUser,
   selectDepartmentNames,
   selectDepartments,
+  selectPermissions,
   selectRecords,
   selectServices,
+  selectToday,
   selectTodayService,
   selectUserMap,
   selectUsers,
 } from "@/store/selectors";
-import { formatDay, formatTime, todayKey } from "@/utils/date";
+import { formatDay, formatTime } from "@/utils/date";
 import { rankStandings, servicesIn } from "@/utils/points";
 import { changeOf, countStatus, onTimeShare } from "@/utils/stats";
 
@@ -38,8 +41,9 @@ const DashboardPage = () => {
   const records = useAppSelector(selectRecords);
   const departments = useAppSelector(selectDepartments);
   const departmentNames = useAppSelector(selectDepartmentNames);
+  const permissions = useAppSelector(selectPermissions);
 
-  const today = todayKey();
+  const today = useAppSelector(selectToday);
   const pastServices = services.filter((item) => item.date <= today);
   const recordsOf = (serviceId?: string) =>
     records.filter((record) => record.serviceId === serviceId);
@@ -80,11 +84,13 @@ const DashboardPage = () => {
             : "No service today"
         }
         action={
-          <Link href={routePath.Admin.Override}>
-            <Button size="sm">
-              <ShieldCheck className="size-4" /> Manual check-in
-            </Button>
-          </Link>
+          permissions.includes("attendance.override") && (
+            <Link href={routePath.Admin.Override}>
+              <Button size="sm">
+                <ShieldCheck className="size-4" /> Manual check-in
+              </Button>
+            </Link>
+          )
         }
       />
       <KpiStrip items={kpis} />
@@ -115,11 +121,12 @@ const DashboardPage = () => {
           )}
         </Card>
         <div className="flex flex-col gap-6">
-          {top && <TopCard standing={top} />}
+          {top && top.points > 0 && <TopCard standing={top} />}
           <Card>
             <h2 className="mb-4 text-sm font-semibold">By department</h2>
             <DepartmentProgress departments={departments} users={users} records={todayRecords} />
           </Card>
+          {permissions.includes("children.view") && <ChildrenSummary />}
           <AwayGrid users={away} />
         </div>
       </div>

@@ -1,18 +1,27 @@
 {
-  "Auth": { "Login": "/login" },
+  "Public": { "Home": "/" },
+  "Auth": { "Login": "/login", "Signup": "/signup", "Suspended": "/suspended" },
+  "Owner": { "Console": "/owner" },
   "Member": {
-    "CheckIn": "/",
-    "History": "/history",
-    "Duties": "/duties",
-    "Leaderboard": "/leaderboard"
+    "CheckIn": "/app",
+    "History": "/app/history",
+    "Duties": "/app/duties",
+    "Leaderboard": "/app/leaderboard"
   },
   "Admin": {
     "Dashboard": "/admin",
     "Attendance": "/admin/attendance",
     "Override": "/admin/override",
+    "CheckInCode": "/admin/checkin-code",
     "Roster": "/admin/roster",
     "Leaderboard": "/admin/leaderboard",
+    "ChildrenRegister": "/admin/children",
+    "ChildrenRecords": "/admin/children/records",
+    "ChildrenMonthly": "/admin/children/monthly",
+    "ChildrenLeaderboard": "/admin/children/leaderboard",
     "Members": "/admin/members",
+    "Roles": "/admin/roles",
+    "Branding": "/admin/branding",
     "Settings": "/admin/settings"
   }
 }

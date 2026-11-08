@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/utils/cn";
 
-export type NavItem = { href: string; label: string; icon: LucideIcon };
+export type NavItem = { href: string; label: string; icon: LucideIcon; isSection?: boolean };
 
 type NavLinkProps = { item: NavItem; layout: "tab" | "side" };
 
 const NavLink = ({ item, layout }: NavLinkProps) => {
-  const isActive = usePathname() === item.href;
+  const pathname = usePathname();
+  const isActive = item.isSection ? pathname.startsWith(item.href) : pathname === item.href;
   const Icon = item.icon;
 
   if (layout === "tab")

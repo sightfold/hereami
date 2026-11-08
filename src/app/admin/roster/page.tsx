@@ -8,11 +8,13 @@ import ExportMenu from "@/components/roster/ExportMenu";
 import RosterSheet from "@/components/roster/RosterSheet";
 import PageHeader from "@/components/layout/PageHeader";
 import Empty from "@/components/ui/Empty";
+import { useRunAction } from "@/components/ui/ErrorNotice";
 import Segmented from "@/components/ui/Segmented";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   selectAssignments,
   selectDepartments,
+  selectOrgName,
   selectUpcoming,
   selectUserMap,
   selectUsers,
@@ -24,11 +26,13 @@ import type { Assignment } from "@/utils/types";
 
 const RosterPage = () => {
   const dispatch = useAppDispatch();
+  const run = useRunAction();
   const upcoming = useAppSelector(selectUpcoming);
   const assignments = useAppSelector(selectAssignments);
   const users = useAppSelector(selectUsers);
   const userMap = useAppSelector(selectUserMap);
   const departments = useAppSelector(selectDepartments);
+  const orgName = useAppSelector(selectOrgName);
   const sheetRef = useRef<HTMLDivElement>(null);
   const [pickedId, setPickedId] = useState<string | null>(null);
 
@@ -40,14 +44,18 @@ const RosterPage = () => {
 
   const handlePick = (departmentId: string, role: string, userId: string) => {
     const slot = slots.find((item) => item.departmentId === departmentId && item.role === role);
-    if (!userId && slot) dispatch(removeAssignment(slot.id));
-    else if (slot) dispatch(updateAssignment({ ...slot, userId }));
+    if (!userId && slot) run(dispatch(removeAssignment(slot.id)));
+    else if (slot) run(dispatch(updateAssignment({ ...slot, userId })));
     else if (userId)
-      dispatch(addAssignment({ serviceId: service.id, departmentId, role, userId, isLead: false }));
+      run(
+        dispatch(
+          addAssignment({ serviceId: service.id, departmentId, role, userId, isLead: false }),
+        ),
+      );
   };
 
   const handleToggleLead = (slot: Assignment) => {
-    dispatch(updateAssignment({ ...slot, isLead: !slot.isLead }));
+    run(dispatch(updateAssignment({ ...slot, isLead: !slot.isLead })));
   };
 
   return (
@@ -92,6 +100,7 @@ const RosterPage = () => {
       <div aria-hidden className="pointer-events-none fixed top-0 -left-[9999px]">
         <RosterSheet
           ref={sheetRef}
+          orgName={orgName}
           service={service}
           slots={slots}
           userMap={userMap}

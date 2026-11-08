@@ -3,43 +3,74 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
+import FormError from "@/components/ui/FormError";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import { memberRoleId } from "@/constants/permissions";
 import { useAppSelector } from "@/store";
-import { selectDepartments } from "@/store/selectors";
+import { selectDepartments, selectPermissions, selectRoles } from "@/store/selectors";
+import { withRootError } from "@/utils/error";
 import { memberSchema, type MemberForm as MemberValues } from "@/utils/schemas";
 
-type MemberFormProps = { initial?: MemberValues; onSave: (values: MemberValues) => Promise<void> };
+type MemberFormProps = {
+  initial?: MemberValues;
+  onSave: (values: MemberValues) => Promise<void>;
+  onRemove?: () => Promise<void>;
+  isRoleLocked?: boolean;
+};
 
-const blank: MemberValues = { name: "", phone: "", role: "member", departments: [] };
+const blank: MemberValues = { name: "", email: "", phone: "", role: memberRoleId, departments: [] };
 
-const MemberForm = ({ initial = blank, onSave }: MemberFormProps) => {
+const MemberForm = ({ initial = blank, onSave, onRemove, isRoleLocked }: MemberFormProps) => {
   const {
+    control,
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<MemberValues>({ resolver: zodResolver(memberSchema), defaultValues: initial });
   const departments = useAppSelector(selectDepartments);
+  const roles = useAppSelector(selectRoles);
+  const canAssignRoles = useAppSelector(selectPermissions).includes("roles.manage");
   const departmentsField = register("departments");
 
+  const onSubmit = withRootError(setError, onSave);
+
   return (
-    <form onSubmit={handleSubmit(onSave)} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <Field label="Full name" error={errors.name?.message}>
         <Input {...register("name")} />
+      </Field>
+      <Field label="Email" error={errors.email?.message}>
+        <Input {...register("email")} type="email" autoComplete="off" />
       </Field>
       <Field label="Phone" error={errors.phone?.message}>
         <Input {...register("phone")} placeholder="+2348030000000" inputMode="tel" />
       </Field>
-      <Field label="Role" error={errors.role?.message}>
-        <Select {...register("role")}>
-          <option value="member">Member</option>
-          <option value="lead">Team lead</option>
-          <option value="admin">Admin</option>
-        </Select>
-      </Field>
+      {isRoleLocked && (
+        <Field label="Role">
+          <p className="text-sm text-muted">
+            Primary administrator. This role can&apos;t be changed.
+          </p>
+        </Field>
+      )}
+      {canAssignRoles && !isRoleLocked && (
+        <Field label="Role" error={errors.role?.message}>
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                options={roles.map(({ id, name }) => ({ value: id, label: name }))}
+              />
+            )}
+          />
+        </Field>
+      )}
       <fieldset className="flex flex-col gap-1.5 text-sm">
         <legend className="mb-1.5 font-medium">Departments</legend>
         <div className="grid grid-cols-2 gap-2">
@@ -59,13 +90,24 @@ const MemberForm = ({ initial = blank, onSave }: MemberFormProps) => {
             />
           ))}
         </div>
+        {departments.length === 0 && (
+          <span className="text-xs text-muted">
+            Add a department in Settings before adding people.
+          </span>
+        )}
         {errors.departments && (
           <span className="text-xs text-bad">{errors.departments.message}</span>
         )}
       </fieldset>
+      <FormError message={errors.root?.message} />
       <Button type="submit" disabled={isSubmitting}>
         Save member
       </Button>
+      {onRemove && (
+        <Button type="button" variant="ghost" onClick={withRootError(setError, onRemove)}>
+          Remove from organization
+        </Button>
+      )}
     </form>
   );
 };

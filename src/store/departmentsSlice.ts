@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { addDepartment, loadAll, removeDepartment, updateDepartment } from "@/store/thunks";
+import { removeById, replaceById } from "@/utils/list";
 import type { Department } from "@/utils/types";
 
 const initialState: { list: Department[] } = { list: [] };
@@ -17,12 +18,10 @@ const departmentsSlice = createSlice({
         state.list.push(action.payload);
       })
       .addCase(updateDepartment.fulfilled, (state, action) => {
-        state.list = state.list.map((item) =>
-          item.id === action.payload.id ? action.payload : item,
-        );
+        state.list = replaceById(state.list, action.payload);
       })
       .addCase(removeDepartment.fulfilled, (state, action) => {
-        state.list = state.list.filter((item) => item.id !== action.payload);
+        state.list = removeById(state.list, action.payload);
       });
   },
 });

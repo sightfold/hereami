@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
+import AccessGuard from "@/components/layout/AccessGuard";
 import MemberShell from "@/components/layout/MemberShell";
-import RoleGuard from "@/components/layout/RoleGuard";
 
 const MemberLayout = ({ children }: { children: ReactNode }) => (
-  <RoleGuard roles={["member", "lead", "admin"]}>
+  <AccessGuard area="member">
     <MemberShell>{children}</MemberShell>
-  </RoleGuard>
+  </AccessGuard>
 );
 
 export default MemberLayout;

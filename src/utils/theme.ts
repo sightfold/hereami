@@ -12,7 +12,7 @@ const theme = createTheme({
         success: { main: "#15803d" },
         warning: { main: "#c2410c" },
         error: { main: "#dc2626" },
-        background: { default: "#f5f4f0", paper: "#ffffff" },
+        background: { default: "#ffffff", paper: "#ffffff" },
         text: { primary: "#161616", secondary: "#6b6a65" },
         divider: "#e7e5df",
       },

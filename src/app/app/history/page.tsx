@@ -2,9 +2,9 @@
 
 import { History } from "lucide-react";
 import Badge from "@/components/ui/Badge";
-import Card from "@/components/ui/Card";
 import Empty from "@/components/ui/Empty";
 import KpiStrip from "@/components/ui/KpiStrip";
+import PaperSheet from "@/components/ui/PaperSheet";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { useAppSelector } from "@/store";
 import {
@@ -12,8 +12,9 @@ import {
   selectRecords,
   selectServices,
   selectStandings,
+  selectToday,
 } from "@/store/selectors";
-import { formatDay, formatTime, todayKey } from "@/utils/date";
+import { formatDay, formatTime } from "@/utils/date";
 import { pointsFor } from "@/utils/points";
 import { countStatus, percent } from "@/utils/stats";
 import type { Service } from "@/utils/types";
@@ -24,7 +25,7 @@ const HistoryPage = () => {
   const records = useAppSelector(selectRecords);
   const standing = useAppSelector(selectStandings).find((item) => item.user.id === user?.id);
 
-  const today = todayKey();
+  const today = useAppSelector(selectToday);
   const pastServices = services.filter((service) => service.date <= today).reverse();
   const myRecords = records.filter((record) => record.userId === user?.id);
   const counts = countStatus(myRecords);
@@ -69,14 +70,17 @@ const HistoryPage = () => {
       {pastServices.length === 0 ? (
         <Empty icon={History} text="No services yet." />
       ) : (
-        <Card className="divide-y divide-line p-0">
+        <PaperSheet title="My register">
           {pastServices.map((service) => {
             const record = recordFor(service.id);
             return (
-              <div key={service.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="text-sm">
-                  <p className="font-medium">{formatDay(service.date)}</p>
-                  <p className="font-mono text-xs text-muted">
+              <div
+                key={service.id}
+                className="flex items-center justify-between gap-3 border-b border-rule-blue px-4 py-2.5"
+              >
+                <div>
+                  <p className="font-serif text-lg leading-tight">{formatDay(service.date)}</p>
+                  <p className="text-xs text-muted">
                     {record ? `Arrived ${formatTime(record.time)}` : service.name}
                   </p>
                 </div>
@@ -84,7 +88,7 @@ const HistoryPage = () => {
               </div>
             );
           })}
-        </Card>
+        </PaperSheet>
       )}
     </div>
   );

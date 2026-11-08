@@ -27,7 +27,7 @@ const PersonCard = ({ name, subtitle, photo, pill, tag, isDim, onClick }: Person
         {photo ? (
           <Image src={photo} alt={name} fill sizes="160px" className="object-cover" />
         ) : (
-          <span className="font-serif text-4xl text-white/85 italic">{initialsOf(name)}</span>
+          <span className="font-serif text-4xl text-white/85">{initialsOf(name)}</span>
         )}
         {pill && (
           <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 rounded-full bg-white/90 px-1.5 py-0.5 text-[10px] font-medium text-zinc-900 backdrop-blur">

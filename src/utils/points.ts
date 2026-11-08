@@ -1,7 +1,6 @@
 import { format, subDays, subMinutes } from "date-fns";
-import type { Tone } from "@/components/ui/Badge";
 import { toDateTime } from "@/utils/date";
-import type { Attendance, Service, User } from "@/utils/types";
+import type { Attendance, Service, Tone, User } from "@/utils/types";
 
 export const pointRules = {
   earlyMin: 30,

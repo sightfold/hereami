@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
+import AccessGuard from "@/components/layout/AccessGuard";
 import AdminShell from "@/components/layout/AdminShell";
-import RoleGuard from "@/components/layout/RoleGuard";
 
 const AdminLayout = ({ children }: { children: ReactNode }) => (
-  <RoleGuard roles={["lead", "admin"]}>
+  <AccessGuard area="admin">
     <AdminShell>{children}</AdminShell>
-  </RoleGuard>
+  </AccessGuard>
 );
 
 export default AdminLayout;

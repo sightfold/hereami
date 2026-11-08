@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { addMember, loadAll, removeDepartment, updateMember } from "@/store/thunks";
+import { addMember, loadAll, removeDepartment, removeMember, updateMember } from "@/store/thunks";
+import { removeById, replaceById } from "@/utils/list";
 import type { User } from "@/utils/types";
 
 const initialState: { users: User[] } = { users: [] };
@@ -17,9 +18,10 @@ const membersSlice = createSlice({
         state.users.push(action.payload);
       })
       .addCase(updateMember.fulfilled, (state, action) => {
-        state.users = state.users.map((item) =>
-          item.id === action.payload.id ? action.payload : item,
-        );
+        state.users = replaceById(state.users, action.payload);
+      })
+      .addCase(removeMember.fulfilled, (state, action) => {
+        state.users = removeById(state.users, action.payload);
       })
       .addCase(removeDepartment.fulfilled, (state, action) => {
         state.users.forEach((user) => {

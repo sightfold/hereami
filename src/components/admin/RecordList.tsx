@@ -16,16 +16,19 @@ const RecordList = ({ records, userMap, serviceMap, emptyText }: RecordListProps
   if (records.length === 0) return <Empty icon={ClipboardList} text={emptyText} />;
 
   return (
-    <ul className="divide-y divide-line">
+    <ul>
       {records.map((record) => {
         const user = userMap.get(record.userId);
         const name = user?.name ?? "Unknown";
         const service = serviceMap.get(record.serviceId);
         return (
-          <li key={record.id} className="flex items-center gap-3 py-3">
+          <li
+            key={record.id}
+            className="flex items-center gap-3 border-b border-rule-blue px-4 py-2.5"
+          >
             <Avatar name={name} src={user?.photo} />
-            <div className="min-w-0 flex-1 text-sm">
-              <p className="truncate font-medium">{name}</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-serif text-lg leading-tight">{name}</p>
               <p className="truncate text-xs text-muted">{record.reason}</p>
             </div>
             <div className="flex flex-col items-end gap-1">

@@ -1,12 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import Input from "@/components/ui/Input";
-import Textarea from "@/components/ui/Textarea";
-import { splitRoles } from "@/utils/departments";
+import TagInput from "@/components/ui/TagInput";
 import { departmentSchema, type DepartmentForm as DepartmentValues } from "@/utils/schemas";
 import type { Department } from "@/utils/types";
 
@@ -19,12 +18,13 @@ type DepartmentFormProps = {
 const DepartmentForm = ({ initial, takenNames, onSave }: DepartmentFormProps) => {
   const {
     register,
+    control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<DepartmentValues>({
     resolver: zodResolver(departmentSchema),
-    defaultValues: { name: initial?.name ?? "", roles: initial?.roles.join("\n") ?? "" },
+    defaultValues: { name: initial?.name ?? "", roles: initial?.roles ?? [] },
   });
 
   const onSubmit = async ({ name, roles }: DepartmentValues) => {
@@ -32,7 +32,7 @@ const DepartmentForm = ({ initial, takenNames, onSave }: DepartmentFormProps) =>
       setError("name", { message: "A department with this name already exists" });
       return;
     }
-    await onSave({ name, roles: [...new Set(splitRoles(roles))] });
+    await onSave({ name, roles });
   };
 
   return (
@@ -40,12 +40,23 @@ const DepartmentForm = ({ initial, takenNames, onSave }: DepartmentFormProps) =>
       <Field label="Department name" error={errors.name?.message}>
         <Input {...register("name")} placeholder="e.g. Lighting" />
       </Field>
-      <Field label="Roles" error={errors.roles?.message}>
-        <Textarea {...register("roles")} minRows={4} placeholder={"Lighting Desk\nSpotlight"} />
+      <Field label="Roles (optional)" error={errors.roles?.message}>
+        <Controller
+          control={control}
+          name="roles"
+          render={({ field }) => (
+            <TagInput
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="e.g. Lighting Desk"
+            />
+          )}
+        />
       </Field>
       <p className="-mt-2 text-xs text-muted">
-        One role per line. Each role becomes a slot on the duty roster. Removing a role clears
-        anyone rostered in it.
+        Press Enter or comma after each role. Each role becomes a slot on the duty roster. Leave it
+        empty if the whole department serves every service. Removing a role clears anyone rostered
+        in it.
       </p>
       <Button type="submit" disabled={isSubmitting}>
         Save department

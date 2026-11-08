@@ -3,18 +3,18 @@
 import { useState } from "react";
 import AttendanceTable from "@/components/admin/AttendanceTable";
 import PageHeader from "@/components/layout/PageHeader";
-import Card from "@/components/ui/Card";
 import KpiStrip from "@/components/ui/KpiStrip";
+import PaperSheet from "@/components/ui/PaperSheet";
 import Select from "@/components/ui/Select";
 import { useAppSelector } from "@/store";
 import {
   selectDepartments,
+  selectHeldServices,
   selectRecords,
   selectServiceMap,
-  selectServices,
   selectUserMap,
 } from "@/store/selectors";
-import { formatDay, todayKey } from "@/utils/date";
+import { formatDay } from "@/utils/date";
 import { isEarly } from "@/utils/points";
 import { countStatus, newestFirst, onTimeShare } from "@/utils/stats";
 
@@ -27,12 +27,11 @@ const statusOptions = [
 ];
 
 const AttendancePage = () => {
-  const services = useAppSelector(selectServices);
   const records = useAppSelector(selectRecords);
   const userMap = useAppSelector(selectUserMap);
   const serviceMap = useAppSelector(selectServiceMap);
   const departments = useAppSelector(selectDepartments);
-  const pastServices = services.filter((service) => service.date <= todayKey()).toReversed();
+  const pastServices = useAppSelector(selectHeldServices).toReversed();
 
   const [serviceId, setServiceId] = useState(anyValue);
   const [departmentId, setDepartmentId] = useState(anyValue);
@@ -68,44 +67,35 @@ const AttendancePage = () => {
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         <Select
           value={serviceId}
-          onChange={(event) => setServiceId(event.target.value)}
+          onChange={setServiceId}
           aria-label="Service"
-        >
-          <option value={anyValue}>All services</option>
-          {pastServices.map((service) => (
-            <option key={service.id} value={service.id}>
-              {formatDay(service.date)}
-            </option>
-          ))}
-        </Select>
+          options={[
+            { value: anyValue, label: "All services" },
+            ...pastServices.map((service) => ({
+              value: service.id,
+              label: formatDay(service.date),
+            })),
+          ]}
+        />
         <Select
           value={departmentId}
-          onChange={(event) => setDepartmentId(event.target.value)}
+          onChange={setDepartmentId}
           aria-label="Department"
-        >
-          <option value={anyValue}>All departments</option>
-          {departments.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </Select>
+          options={[
+            { value: anyValue, label: "All departments" },
+            ...departments.map((item) => ({ value: item.id, label: item.name })),
+          ]}
+        />
         <Select
           value={status}
-          onChange={(event) => setStatus(event.target.value)}
+          onChange={setStatus}
           aria-label="Status"
-        >
-          <option value={anyValue}>All statuses</option>
-          {statusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
+          options={[{ value: anyValue, label: "All statuses" }, ...statusOptions]}
+        />
       </div>
-      <Card className="overflow-hidden p-0">
+      <PaperSheet title="Attendance register" meta={`${shown.length} entries`}>
         <AttendanceTable records={shown} userMap={userMap} serviceMap={serviceMap} />
-      </Card>
+      </PaperSheet>
     </div>
   );
 };

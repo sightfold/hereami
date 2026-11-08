@@ -20,31 +20,24 @@ const leadHint = (slot?: Assignment) => {
   return slot.isLead ? "Shift lead: tap to remove" : "Make shift lead";
 };
 
+const toOptions = (users: User[], group: string) =>
+  users.map((user) => ({ value: user.id, label: user.name, group }));
+
 const SlotRow = ({ role, slot, members, others, hasIssue, onPick, onToggleLead }: SlotRowProps) => (
   <div className="flex items-center gap-2">
     <span className="w-24 shrink-0 text-sm text-muted sm:w-32">{role}</span>
     <Select
       aria-label={role}
       value={slot?.userId ?? ""}
-      onChange={(event) => onPick(event.target.value)}
-      className={cn("h-9 min-w-0 flex-1", hasIssue && "border-bad")}
-    >
-      <option value="">Unassigned</option>
-      <optgroup label="This department">
-        {members.map((user) => (
-          <option key={user.id} value={user.id}>
-            {user.name}
-          </option>
-        ))}
-      </optgroup>
-      <optgroup label="Other departments">
-        {others.map((user) => (
-          <option key={user.id} value={user.id}>
-            {user.name}
-          </option>
-        ))}
-      </optgroup>
-    </Select>
+      onChange={onPick}
+      error={hasIssue}
+      className="min-w-0 flex-1"
+      options={[
+        { value: "", label: "Unassigned" },
+        ...toOptions(members, "This department"),
+        ...toOptions(others, "Other departments"),
+      ]}
+    />
     <Tooltip title={leadHint(slot)} arrow>
       <span>
         <IconButton

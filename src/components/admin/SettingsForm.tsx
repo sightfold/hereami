@@ -11,7 +11,8 @@ import Spinner from "@/components/ui/Spinner";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { selectSettings } from "@/store/selectors";
 import { saveSettings } from "@/store/thunks";
-import { getPosition } from "@/utils/geo";
+import { errorMessage } from "@/utils/error";
+import { getPosition, locationError } from "@/utils/geo";
 import {
   settingsSchema,
   type SettingsForm as SettingsValues,
@@ -41,23 +42,24 @@ const SettingsForm = () => {
       setValue("lat", Number(coords.latitude.toFixed(6)), { shouldDirty: true });
       setValue("lng", Number(coords.longitude.toFixed(6)), { shouldDirty: true });
       setNotice("Location filled in. Save to apply.");
-    } catch {
-      setNotice("Could not read your location.");
+    } catch (error) {
+      setNotice(locationError(error));
     } finally {
       setIsLocating(false);
     }
   };
 
   const onSubmit = async (values: SettingsValues) => {
-    await dispatch(saveSettings(values));
-    setNotice("Settings saved.");
+    try {
+      await dispatch(saveSettings(values)).unwrap();
+      setNotice("Settings saved.");
+    } catch (error) {
+      setNotice(errorMessage(error));
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <Field label="Church name" error={errors.churchName?.message}>
-        <Input {...register("churchName")} />
-      </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Latitude" error={errors.lat?.message}>
           <Input {...register("lat")} inputMode="decimal" />
@@ -70,15 +72,12 @@ const SettingsForm = () => {
         {isLocating ? <Spinner /> : <LocateFixed className="size-4" />}
         Use my current location
       </Button>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Radius (m)" error={errors.radiusM?.message}>
           <Input {...register("radiusM")} inputMode="numeric" />
         </Field>
         <Field label="Late after (min)" error={errors.lateAfterMin?.message}>
           <Input {...register("lateAfterMin")} inputMode="numeric" />
-        </Field>
-        <Field label="Church Wi-Fi" error={errors.wifiName?.message}>
-          <Input {...register("wifiName")} />
         </Field>
       </div>
       {notice && <p className="rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">{notice}</p>}

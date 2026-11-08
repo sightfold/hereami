@@ -9,6 +9,8 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { ClipboardList } from "lucide-react";
+import AttendanceDetail from "@/components/admin/AttendanceDetail";
+import { methodLabels } from "@/constants/attendance";
 import Avatar from "@/components/ui/Avatar";
 import Empty from "@/components/ui/Empty";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -24,26 +26,14 @@ type AttendanceTableProps = {
   serviceMap: Map<string, Service>;
 };
 
-const methodLabels: Record<Attendance["method"], string> = {
-  gps: "GPS",
-  wifi: "Wi-Fi",
-  override: "Manual",
-};
-
-const detailOf = (record: Attendance, userMap: Map<string, User>) => {
-  if (record.method === "override") {
-    const approver = userMap.get(record.approvedBy ?? "")?.name ?? "Lead";
-    return `${approver}: ${record.reason ?? ""}`;
-  }
-  return record.distM === undefined ? "—" : `${record.distM} m`;
-};
-
-const headers = ["Member", "Service", "Arrived", "Method", "Detail", "Status", "Points"];
+const headers = ["Member", "Service", "Arrived", "Method", "Status", "Points"];
 const pageSize = 10;
-const cellClass = "border-line px-3 py-2.5";
+const cellClass = "border-rule-blue px-3 py-2.5";
+const inkClass = "text-base whitespace-nowrap";
 
 const AttendanceTable = ({ records, userMap, serviceMap }: AttendanceTableProps) => {
   const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState<Attendance | null>(null);
   const departmentNames = useAppSelector(selectDepartmentNames);
   const lastPage = Math.max(0, Math.ceil(records.length / pageSize) - 1);
   const current = Math.min(page, lastPage);
@@ -58,7 +48,7 @@ const AttendanceTable = ({ records, userMap, serviceMap }: AttendanceTableProps)
           <TableHead>
             <TableRow>
               {headers.map((header) => (
-                <TableCell key={header} className={`${cellClass} text-xs text-muted`}>
+                <TableCell key={header} className={`${cellClass} text-sm text-muted`}>
                   {header}
                 </TableCell>
               ))}
@@ -69,32 +59,43 @@ const AttendanceTable = ({ records, userMap, serviceMap }: AttendanceTableProps)
               const user = userMap.get(record.userId);
               const service = serviceMap.get(record.serviceId);
               return (
-                <TableRow key={record.id} hover>
+                <TableRow
+                  key={record.id}
+                  hover
+                  tabIndex={0}
+                  aria-haspopup="dialog"
+                  className="cursor-pointer"
+                  onClick={() => setSelected(record)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" && event.key !== " ") return;
+                    event.preventDefault();
+                    setSelected(record);
+                  }}
+                >
                   <TableCell className={cellClass}>
                     <div className="flex items-center gap-2.5">
                       <Avatar name={user?.name ?? "?"} src={user?.photo} className="size-8" />
                       <div>
-                        <p className="whitespace-nowrap font-medium">{user?.name}</p>
-                        <p className="text-xs text-muted">
+                        <p className="text-lg leading-tight whitespace-nowrap">{user?.name}</p>
+                        <p className="text-sm text-muted">
                           {user && departmentNames(user.departments)}
                         </p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className={`${cellClass} whitespace-nowrap`}>
+                  <TableCell className={`${cellClass} ${inkClass}`}>
                     {service && formatShortDay(service.date)}
                   </TableCell>
-                  <TableCell className={`${cellClass} font-mono`}>
+                  <TableCell className={`${cellClass} ${inkClass}`}>
                     {formatTime(record.time)}
                   </TableCell>
-                  <TableCell className={cellClass}>{methodLabels[record.method]}</TableCell>
-                  <TableCell className={`${cellClass} max-w-56 truncate text-muted`}>
-                    {detailOf(record, userMap)}
+                  <TableCell className={`${cellClass} ${inkClass}`}>
+                    {methodLabels[record.method]}
                   </TableCell>
                   <TableCell className={cellClass}>
                     <StatusBadge status={record.status} />
                   </TableCell>
-                  <TableCell className={`${cellClass} font-mono`}>
+                  <TableCell className={`${cellClass} ${inkClass}`}>
                     {service && `+${pointsFor(record, service)}`}
                   </TableCell>
                 </TableRow>
@@ -112,6 +113,14 @@ const AttendanceTable = ({ records, userMap, serviceMap }: AttendanceTableProps)
         onPageChange={(_, next) => setPage(next)}
         className="text-muted"
       />
+      {selected && (
+        <AttendanceDetail
+          record={selected}
+          userMap={userMap}
+          serviceMap={serviceMap}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </>
   );
 };

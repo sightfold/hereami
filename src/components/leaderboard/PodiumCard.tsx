@@ -4,7 +4,7 @@ import Avatar from "@/components/ui/Avatar";
 import { cn } from "@/utils/cn";
 import type { Standing } from "@/utils/points";
 
-const themes: Record<Place, string> = {
+export const podiumThemes: Record<Place, string> = {
   1: "from-orange-500/90 via-orange-900 to-stone-950 ring-orange-300/40 md:order-2 md:min-h-96",
   2: "from-zinc-400/70 via-zinc-800 to-zinc-950 ring-zinc-200/25 md:order-1 md:min-h-80",
   3: "from-rose-700/90 via-rose-950 to-stone-950 ring-rose-200/25 md:order-3 md:min-h-80",
@@ -20,7 +20,7 @@ const PodiumCard = ({ standing, isMe }: PodiumCardProps) => {
     <div
       className={cn(
         "relative flex min-h-64 flex-col gap-4 overflow-hidden rounded-3xl bg-linear-to-b p-5 text-white shadow-2xl ring-1",
-        themes[place],
+        podiumThemes[place],
         isMe && "ring-2 ring-amber-300",
       )}
     >

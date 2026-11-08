@@ -2,24 +2,23 @@
 
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { ShieldCheck } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { selectCurrentUser, selectRecords, selectServices, selectUsers } from "@/store/selectors";
+import { selectHeldServices, selectRecords, selectUsers } from "@/store/selectors";
 import { overrideCheckIn } from "@/store/thunks";
-import { formatDay, todayKey } from "@/utils/date";
+import { formatDay } from "@/utils/date";
 import { overrideSchema, type OverrideForm as OverrideValues } from "@/utils/schemas";
 
 const OverrideForm = () => {
   const dispatch = useAppDispatch();
-  const lead = useAppSelector(selectCurrentUser);
   const users = useAppSelector(selectUsers);
   const records = useAppSelector(selectRecords);
-  const services = useAppSelector(selectServices).filter((service) => service.date <= todayKey());
+  const services = useAppSelector(selectHeldServices);
   const [notice, setNotice] = useState("");
 
   const {
@@ -41,8 +40,7 @@ const OverrideForm = () => {
   const pending = users.filter((user) => !checkedIds.has(user.id));
 
   const onSubmit = async (values: OverrideValues) => {
-    if (!lead) return;
-    const result = await dispatch(overrideCheckIn({ form: values, approvedBy: lead.id }));
+    const result = await dispatch(overrideCheckIn(values));
     if (overrideCheckIn.rejected.match(result)) {
       setError("userId", { message: result.error.message });
       return;
@@ -55,23 +53,35 @@ const OverrideForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <Field label="Service" error={errors.serviceId?.message}>
-        <Select {...register("serviceId")}>
-          {services.toReversed().map((service) => (
-            <option key={service.id} value={service.id}>
-              {formatDay(service.date)} · {service.name}
-            </option>
-          ))}
-        </Select>
+        <Controller
+          name="serviceId"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              options={services.toReversed().map((service) => ({
+                value: service.id,
+                label: `${formatDay(service.date)} · ${service.name}`,
+              }))}
+            />
+          )}
+        />
       </Field>
       <Field label="Member" error={errors.userId?.message}>
-        <Select {...register("userId")} onFocus={() => setNotice("")}>
-          <option value="">Choose a member ({pending.length} not checked in)</option>
-          {pending.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.name}
-            </option>
-          ))}
-        </Select>
+        <Controller
+          name="userId"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              onOpen={() => setNotice("")}
+              options={[
+                { value: "", label: `Choose a member (${pending.length} not checked in)` },
+                ...pending.map((user) => ({ value: user.id, label: user.name })),
+              ]}
+            />
+          )}
+        />
       </Field>
       <Field label="Reason" error={errors.reason?.message}>
         <Textarea

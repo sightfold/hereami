@@ -9,7 +9,7 @@ import type { Attendance, Service } from "@/utils/types";
 
 const methodLabels: Record<Attendance["method"], string> = {
   gps: "Verified by GPS",
-  wifi: "Verified by church Wi-Fi",
+  qr: "Verified by check-in code",
   override: "Approved by Team Lead",
 };
 

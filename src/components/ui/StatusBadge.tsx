@@ -1,6 +1,6 @@
 import { ShieldCheck } from "lucide-react";
-import Badge, { type Tone } from "@/components/ui/Badge";
-import type { AttendanceStatus } from "@/utils/types";
+import Badge from "@/components/ui/Badge";
+import type { AttendanceStatus, Tone } from "@/utils/types";
 
 export const statusLooks: Record<AttendanceStatus, { tone: Tone; label: string }> = {
   onTime: { tone: "ok", label: "On time" },

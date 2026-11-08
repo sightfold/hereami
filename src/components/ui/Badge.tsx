@@ -1,8 +1,7 @@
 import type { ReactElement, ReactNode } from "react";
 import Chip from "@mui/material/Chip";
 import { cn } from "@/utils/cn";
-
-export type Tone = "neutral" | "brand" | "ok" | "warn" | "bad" | "gold";
+import type { Tone } from "@/utils/types";
 
 const tones: Record<Tone, string> = {
   neutral: "bg-subtle text-muted",

@@ -2,28 +2,23 @@
 
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { selectCurrentUser, selectSettings, selectTodayService } from "@/store/selectors";
+import { selectActiveOrg, selectSettings, selectTodayService } from "@/store/selectors";
 import { checkIn } from "@/store/thunks";
-import { getPosition, haversineM } from "@/utils/geo";
+import { isValidCode } from "@/utils/checkInCode";
+import { getPosition, haversineM, locationError } from "@/utils/geo";
 import type { CheckInMethod } from "@/utils/types";
 
-export type Step = "idle" | "locating" | "outside" | "scanning" | "saving" | "error";
-
-const locationError = (error: unknown) => {
-  if (error instanceof GeolocationPositionError && error.code === error.PERMISSION_DENIED) {
-    return "Location permission was denied. Allow location access and try again.";
-  }
-  return error instanceof Error ? error.message : "Could not read your location";
-};
+export type Step = "idle" | "locating" | "outside" | "code" | "scanning" | "saving" | "error";
 
 const useCheckIn = () => {
   const dispatch = useAppDispatch();
-  const user = useAppSelector(selectCurrentUser);
   const service = useAppSelector(selectTodayService);
   const settings = useAppSelector(selectSettings);
+  const org = useAppSelector(selectActiveOrg);
   const [step, setStep] = useState<Step>("idle");
   const [distM, setDistM] = useState<number | null>(null);
   const [method, setMethod] = useState<Exclude<CheckInMethod, "override">>("gps");
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
 
   const fail = (message: string) => {
@@ -44,16 +39,26 @@ const useCheckIn = () => {
     }
   };
 
-  const chooseWifi = () => {
-    setMethod("wifi");
+  const chooseCode = () => setStep("code");
+
+  const checkCode = (value: string) => !!org && !!service && isValidCode(org.id, service.id, value);
+
+  const acceptCode = (value: string) => {
+    setCode(value);
+    setMethod("qr");
     setStep("scanning");
   };
 
   const confirm = async () => {
-    if (!user || !service) return;
+    if (!service) return;
     setStep("saving");
     const result = await dispatch(
-      checkIn({ userId: user.id, serviceId: service.id, method, distM: distM ?? undefined }),
+      checkIn({
+        serviceId: service.id,
+        method,
+        distM: method === "gps" ? (distM ?? undefined) : undefined,
+        code: method === "qr" ? code : undefined,
+      }),
     );
     if (checkIn.rejected.match(result)) fail(result.error.message ?? "Check-in failed");
     else setStep("idle");
@@ -61,7 +66,18 @@ const useCheckIn = () => {
 
   const reset = () => setStep("idle");
 
-  return { step, distM, error, settings, start, chooseWifi, confirm, reset };
+  return {
+    step,
+    distM,
+    error,
+    settings,
+    start,
+    chooseCode,
+    checkCode,
+    acceptCode,
+    confirm,
+    reset,
+  };
 };
 
 export default useCheckIn;

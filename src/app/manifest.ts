@@ -4,7 +4,7 @@ import routePath from "@/constants/route.json";
 const manifest = (): MetadataRoute.Manifest => ({
   name: "Heartbeat",
   short_name: "Heartbeat",
-  description: "Church media attendance and duty roster",
+  description: "Attendance and duty rosters for churches and religious organizations",
   start_url: routePath.Member.CheckIn,
   display: "standalone",
   background_color: "#fafafa",

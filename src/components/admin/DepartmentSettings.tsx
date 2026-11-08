@@ -7,6 +7,8 @@ import Tooltip from "@mui/material/Tooltip";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import DepartmentForm from "@/components/admin/DepartmentForm";
 import Button from "@/components/ui/Button";
+import { useConfirm } from "@/components/ui/ConfirmProvider";
+import { useRunAction } from "@/components/ui/ErrorNotice";
 import Sheet from "@/components/ui/Sheet";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { selectDepartments, selectUsers } from "@/store/selectors";
@@ -15,6 +17,8 @@ import type { Department } from "@/utils/types";
 
 const DepartmentSettings = () => {
   const dispatch = useAppDispatch();
+  const run = useRunAction();
+  const confirm = useConfirm();
   const departments = useAppSelector(selectDepartments);
   const users = useAppSelector(selectUsers);
   const [editing, setEditing] = useState<Department | "new" | null>(null);
@@ -26,15 +30,23 @@ const DepartmentSettings = () => {
     .map((item) => item.name.toLowerCase());
 
   const handleSave = async (input: Omit<Department, "id">) => {
-    if (editing === "new") await dispatch(addDepartment(input));
-    else if (editing) await dispatch(updateDepartment({ ...editing, ...input }));
-    setEditing(null);
+    if (!editing) return;
+    const pending =
+      editing === "new"
+        ? dispatch(addDepartment(input))
+        : dispatch(updateDepartment({ ...editing, ...input }));
+    if (await run(pending)) setEditing(null);
   };
 
-  const handleDelete = (department: Department) => {
+  const handleDelete = async (department: Department) => {
     const count = memberCount(department.id);
-    const warning = `Delete ${department.name}? ${count} member${count === 1 ? "" : "s"} will be removed from it and its roster slots will be cleared.`;
-    if (globalThis.confirm(warning)) dispatch(removeDepartment(department.id));
+    const isConfirmed = await confirm({
+      title: `Delete ${department.name}?`,
+      message: `${count} member${count === 1 ? "" : "s"} will be removed from it and its roster slots will be cleared.`,
+      confirmLabel: "Delete",
+      isDanger: true,
+    });
+    if (isConfirmed) run(dispatch(removeDepartment(department.id)));
   };
 
   return (
@@ -63,11 +75,15 @@ const DepartmentSettings = () => {
                     {memberCount(department.id)} members
                   </span>
                 </p>
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {department.roles.map((role) => (
-                    <Chip key={role} label={role} size="small" className="h-5 text-[11px]" />
-                  ))}
-                </div>
+                {department.roles.length > 0 ? (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {department.roles.map((role) => (
+                      <Chip key={role} label={role} size="small" className="h-5 text-[11px]" />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-1 text-xs text-muted">No roles · everyone serves together</p>
+                )}
               </div>
               <Tooltip title="Edit" arrow>
                 <IconButton

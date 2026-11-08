@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { checkIn, loadAll, overrideCheckIn } from "@/store/thunks";
+import { checkIn, loadAll, overrideCheckIn, removeMember } from "@/store/thunks";
 import type { Attendance } from "@/utils/types";
 
 const initialState: { records: Attendance[] } = { records: [] };
@@ -18,6 +18,9 @@ const attendanceSlice = createSlice({
       })
       .addCase(overrideCheckIn.fulfilled, (state, action) => {
         state.records.push(action.payload);
+      })
+      .addCase(removeMember.fulfilled, (state, action) => {
+        state.records = state.records.filter((record) => record.userId !== action.payload);
       });
   },
 });
