@@ -42,6 +42,7 @@ export const memberSchema = z.object({
   phone,
   role: z.string().min(1, "Choose a role"),
   departments: z.array(z.string()).min(1, "Pick a department"),
+  units: z.array(z.string()),
 });
 
 export type MemberForm = z.infer<typeof memberSchema>;
@@ -49,6 +50,7 @@ export type MemberForm = z.infer<typeof memberSchema>;
 export const departmentSchema = z.object({
   name: z.string().trim().min(2, "Enter a department name"),
   roles: z.array(z.string().trim().min(1)),
+  units: z.array(z.string().trim().min(1)),
 });
 
 export type DepartmentForm = z.infer<typeof departmentSchema>;
@@ -69,6 +71,13 @@ export const signUpSchema = z.object({
 });
 
 export type SignUpForm = z.infer<typeof signUpSchema>;
+
+export const joinSchema = z.object({
+  email,
+  password: strongPassword,
+});
+
+export type JoinForm = z.infer<typeof joinSchema>;
 
 export const brandingSchema = z.object({
   name: z.string().trim().min(2, "Enter the organization's name"),

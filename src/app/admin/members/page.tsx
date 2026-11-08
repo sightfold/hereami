@@ -80,7 +80,7 @@ const MembersPage = () => {
             key={user.id}
             name={user.name}
             photo={user.photo}
-            subtitle={`${departmentNames(user.departments) || "No department"} · ${user.hasPasskey ? "Passkey" : "No passkey"}`}
+            subtitle={`${departmentNames(user.departments, user.units) || "No department"} · ${user.hasPasskey ? "Passkey" : "No passkey"}`}
             pill={pillFor(
               user,
               roles.find((role) => role.id === user.role),

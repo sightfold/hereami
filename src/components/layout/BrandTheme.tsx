@@ -30,7 +30,7 @@ const BrandTheme = () => {
   const org = useAppSelector(selectActiveOrg);
   const isBrandedArea = brandedAreas.some((area) => pathname.startsWith(area));
   const color = isBrandedArea ? org?.brandColor : undefined;
-  const title = (isBrandedArea && org?.name) || "Heartbeat";
+  const title = (isBrandedArea && org?.name) || "Here Am I";
 
   useEffect(() => {
     if (!color) return;

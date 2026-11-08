@@ -12,22 +12,23 @@ import * as settingsApi from "@/api/settings";
 
 export const loadAll = createAsyncThunk("app/loadAll", loadEverything);
 
-const withReload = <Arg>(type: string, action: (arg: Arg) => Promise<unknown>) =>
+const withReload = <Arg, Result>(type: string, action: (arg: Arg) => Promise<Result>) =>
   createAsyncThunk(type, async (arg: Arg, { dispatch }) => {
-    await action(arg);
+    const result = await action(arg);
     await dispatch(loadAll()).unwrap();
+    return result;
   });
 
 export const signIn = withReload("auth/signIn", authApi.signIn);
 export const signUp = withReload("auth/signUp", authApi.signUp);
-export const signOut = withReload<void>("auth/signOut", authApi.signOut);
+export const joinOrganization = withReload("auth/join", authApi.joinOrganization);
+export const signOut = withReload<void, void>("auth/signOut", authApi.signOut);
 
 export const onboardOrganization = withReload("orgs/onboard", orgsApi.onboardOrganization);
 export const updateBranding = withReload("orgs/branding", orgsApi.updateBranding);
 export const setOrgStatus = withReload("orgs/status", orgsApi.setOrgStatus);
 export const startSimulation = withReload("orgs/simulate", orgsApi.startSimulation);
-export const stopSimulation = withReload<void>("orgs/stopSimulate", orgsApi.stopSimulation);
-export const resetDemoData = withReload<void>("orgs/reset", orgsApi.resetDemoData);
+export const stopSimulation = withReload<void, void>("orgs/stopSimulate", orgsApi.stopSimulation);
 
 export const saveRole = createAsyncThunk("roles/save", rolesApi.saveRole);
 export const removeRole = createAsyncThunk("roles/remove", rolesApi.removeRole);
@@ -49,14 +50,8 @@ export const updateMember = createAsyncThunk("members/update", membersApi.update
 export const saveSettings = createAsyncThunk("settings/save", settingsApi.saveSettings);
 
 export const addDepartment = createAsyncThunk("departments/add", departmentsApi.addDepartment);
-export const updateDepartment = createAsyncThunk(
-  "departments/update",
-  departmentsApi.updateDepartment,
-);
-export const removeDepartment = createAsyncThunk(
-  "departments/remove",
-  departmentsApi.removeDepartment,
-);
+export const updateDepartment = withReload("departments/update", departmentsApi.updateDepartment);
+export const removeDepartment = withReload("departments/remove", departmentsApi.removeDepartment);
 
 export const addChild = createAsyncThunk("children/add", childrenApi.addChild);
 export const updateChild = createAsyncThunk("children/update", childrenApi.updateChild);

@@ -1,20 +1,57 @@
+import { run, supabase } from "@/api/client";
+import { activeOrgIdOf } from "@/utils/permissions";
 import type { Session } from "@/utils/types";
 
-const sessionKey = "heartbeat-session";
+type OwnerView = { viewOrgId?: string; viewAsUserId?: string };
 
-export const readSession = (): Session | null => {
+const viewKey = "hereami-owner-view";
+
+let current: Session | null = null;
+
+const readOwnerView = (): OwnerView => {
   try {
-    const parsed = JSON.parse(localStorage.getItem(sessionKey) ?? "null") as Session | null;
-    return parsed?.kind ? parsed : null;
+    return JSON.parse(localStorage.getItem(viewKey) ?? "{}") as OwnerView;
   } catch {
-    return null;
+    return {};
   }
 };
 
-export const writeSession = (session: Session) => {
-  localStorage.setItem(sessionKey, JSON.stringify(session));
+export const writeOwnerView = (view: OwnerView) => {
+  localStorage.setItem(viewKey, JSON.stringify(view));
 };
 
-export const clearSession = () => {
-  localStorage.removeItem(sessionKey);
+export const clearOwnerView = () => {
+  localStorage.removeItem(viewKey);
+};
+
+export const currentSession = () => current;
+
+export const resolveSession = async () => {
+  const { data } = await supabase.auth.getSession();
+  const userId = data.session?.user.id;
+  current = null;
+  if (!userId) return current;
+  const owner = await run(
+    supabase.from("owners").select("user_id").eq("user_id", userId).maybeSingle(),
+  );
+  if (owner) {
+    current = { kind: "owner", ownerId: userId, ...readOwnerView() };
+    return current;
+  }
+  const profile = await run<{ id: string; org_id: string } | null>(
+    supabase.from("profiles").select("id, org_id").eq("user_id", userId).maybeSingle(),
+  );
+  if (profile) current = { kind: "member", userId: profile.id, orgId: profile.org_id };
+  return current;
+};
+
+export const requireOrgId = () => {
+  const orgId = activeOrgIdOf(current);
+  if (!orgId) throw new Error("No organization selected");
+  return orgId;
+};
+
+export const requireOwner = () => {
+  if (current?.kind !== "owner") throw new Error("Only the platform owner can do that");
+  return current;
 };

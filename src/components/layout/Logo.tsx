@@ -18,7 +18,7 @@ const Logo = ({ platform }: { platform?: boolean }) => {
           <HeartPulse className="size-4" />
         </span>
       )}
-      <span className="truncate">{brand?.name ?? "Heartbeat"}</span>
+      <span className="truncate">{brand?.name ?? "Here Am I"}</span>
     </span>
   );
 };

@@ -1,34 +1,58 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import QRCode from "qrcode";
 import { Maximize } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import { codeFor, codeWindowMs, qrPayload, windowOf } from "@/utils/checkInCode";
+import { currentCheckInCode } from "@/api/attendance";
+import { qrPayload } from "@/utils/checkInCode";
+import { errorMessage } from "@/utils/error";
 import type { Service } from "@/utils/types";
 
 type CodeDisplayProps = { orgId: string; service: Service };
 
-const subscribe = (onTick: () => void) => {
-  const timer = setInterval(onTick, 1000);
-  return () => clearInterval(timer);
-};
-
-const currentSecond = () => Math.floor(Date.now() / 1000);
+const windowSeconds = 30;
 
 const CodeDisplay = ({ orgId, service }: CodeDisplayProps) => {
-  const second = useSyncExternalStore(subscribe, currentSecond, () => 0);
   const frameRef = useRef<HTMLDivElement>(null);
   const [image, setImage] = useState("");
-
-  const slot = windowOf(second * 1000);
-  const code = codeFor(orgId, service.id, slot);
-  const windowSeconds = codeWindowMs / 1000;
-  const secondsLeft = windowSeconds - (second % windowSeconds);
+  const [code, setCode] = useState("");
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    let isActive = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = async () => {
+      try {
+        const next = await currentCheckInCode(service.id);
+        if (!isActive) return;
+        setCode(next.code);
+        setSecondsLeft(next.secondsLeft);
+        setError("");
+        timer = setTimeout(refresh, next.secondsLeft * 1000 + 300);
+      } catch (caught) {
+        if (!isActive) return;
+        setError(errorMessage(caught));
+        timer = setTimeout(refresh, 5000);
+      }
+    };
+    refresh();
+    return () => {
+      isActive = false;
+      clearTimeout(timer);
+    };
+  }, [service.id]);
+
+  useEffect(() => {
+    const ticker = setInterval(() => setSecondsLeft((value) => Math.max(0, value - 1)), 1000);
+    return () => clearInterval(ticker);
+  }, []);
+
+  useEffect(() => {
+    if (!code) return;
     QRCode.toDataURL(qrPayload(orgId, service.id, code), { margin: 1, width: 640 }).then(setImage);
   }, [orgId, service.id, code]);
 
@@ -39,7 +63,7 @@ const CodeDisplay = ({ orgId, service }: CodeDisplayProps) => {
     >
       <div>
         <p className="font-semibold">{service.name}</p>
-        <p className="text-sm text-muted">Scan with Heartbeat to check in</p>
+        <p className="text-sm text-muted">Scan with Here Am I to check in</p>
       </div>
       <div className="w-full max-w-80 rounded-2xl bg-white p-3 [:fullscreen_&]:max-w-[min(70vh,90vw)]">
         {image && (
@@ -53,6 +77,7 @@ const CodeDisplay = ({ orgId, service }: CodeDisplayProps) => {
           />
         )}
       </div>
+      {error && <p className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad">{error}</p>}
       <p className="font-mono text-4xl tracking-[0.3em]">
         {code.slice(0, 3)} {code.slice(3)}
       </p>

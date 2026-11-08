@@ -1,3 +1,3 @@
-const PoweredBy = () => <p className="text-[11px] text-muted">Powered by Heartbeat</p>;
+const PoweredBy = () => <p className="text-[11px] text-muted">Powered by Here Am I</p>;
 
 export default PoweredBy;

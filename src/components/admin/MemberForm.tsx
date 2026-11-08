@@ -3,7 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import UnitFields from "@/components/admin/UnitFields";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import FormError from "@/components/ui/FormError";
@@ -22,7 +23,19 @@ type MemberFormProps = {
   isRoleLocked?: boolean;
 };
 
-const blank: MemberValues = { name: "", email: "", phone: "", role: memberRoleId, departments: [] };
+const blank: MemberValues = {
+  name: "",
+  email: "",
+  phone: "",
+  role: memberRoleId,
+  departments: [],
+  units: [],
+};
+
+const toList = (value: string[] | string | false | undefined) => {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+};
 
 const MemberForm = ({ initial = blank, onSave, onRemove, isRoleLocked }: MemberFormProps) => {
   const {
@@ -36,8 +49,15 @@ const MemberForm = ({ initial = blank, onSave, onRemove, isRoleLocked }: MemberF
   const roles = useAppSelector(selectRoles);
   const canAssignRoles = useAppSelector(selectPermissions).includes("roles.manage");
   const departmentsField = register("departments");
+  const checkedIds = toList(useWatch({ control, name: "departments" }));
+  const checkedDepartments = departments.filter((department) => checkedIds.includes(department.id));
 
-  const onSubmit = withRootError(setError, onSave);
+  const onSubmit = withRootError(setError, (values: MemberValues) => {
+    const allowed = new Set(
+      checkedDepartments.flatMap((item) => item.units.map((unit) => unit.id)),
+    );
+    return onSave({ ...values, units: toList(values.units).filter((id) => allowed.has(id)) });
+  });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -99,6 +119,11 @@ const MemberForm = ({ initial = blank, onSave, onRemove, isRoleLocked }: MemberF
           <span className="text-xs text-bad">{errors.departments.message}</span>
         )}
       </fieldset>
+      <UnitFields
+        departments={checkedDepartments}
+        initialUnits={initial.units}
+        field={register("units")}
+      />
       <FormError message={errors.root?.message} />
       <Button type="submit" disabled={isSubmitting}>
         Save member

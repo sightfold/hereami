@@ -28,7 +28,7 @@ export const selectActiveOrg = createSelector(
     organizations.find((item) => item.id === activeOrgIdOf(session)) ?? null,
 );
 
-export const selectOrgName = (state: RootState) => selectActiveOrg(state)?.name ?? "Heartbeat";
+export const selectOrgName = (state: RootState) => selectActiveOrg(state)?.name ?? "Here Am I";
 
 export const selectIsSimulating = (state: RootState) => {
   const session = selectSession(state);
@@ -81,11 +81,18 @@ export const selectDepartmentMap = createSelector(
 
 export const selectDepartmentNames = createSelector(
   [selectDepartmentMap],
-  (map) => (ids: string[]) =>
-    ids
-      .map((id) => map.get(id)?.name)
-      .filter(Boolean)
-      .join(", "),
+  (map) =>
+    (ids: string[], unitIds: string[] = []) =>
+      ids
+        .map((id) => {
+          const department = map.get(id);
+          if (!department) return undefined;
+          const units = department.units.filter((unit) => unitIds.includes(unit.id));
+          if (units.length === 0) return department.name;
+          return `${department.name} (${units.map((unit) => unit.name).join(", ")})`;
+        })
+        .filter(Boolean)
+        .join(", "),
 );
 
 export const selectChildren = (state: RootState) => state.children.list;

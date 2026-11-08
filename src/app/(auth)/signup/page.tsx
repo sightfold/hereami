@@ -2,8 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import AuthFrame from "@/components/layout/AuthFrame";
+import CheckEmail from "@/components/layout/CheckEmail";
 import GuestGuard from "@/components/layout/GuestGuard";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
@@ -27,10 +29,22 @@ const SignupPage = () => {
     formState: { errors, isSubmitting },
   } = useForm<SignUpForm>({ resolver: zodResolver(signUpSchema) });
   const password = useWatch({ control, name: "password" }) ?? "";
+  const [sentTo, setSentTo] = useState("");
 
-  const onSubmit = withRootError(setError, (values: SignUpForm) =>
-    dispatch(signUp(values)).unwrap(),
-  );
+  const onSubmit = withRootError(setError, async (values: SignUpForm) => {
+    const result = await dispatch(signUp(values)).unwrap();
+    if (result.needsConfirmation) setSentTo(values.email);
+  });
+
+  if (sentTo) {
+    return (
+      <GuestGuard>
+        <AuthFrame title="Check your email" subtitle="One more step to finish registering.">
+          <CheckEmail email={sentTo} />
+        </AuthFrame>
+      </GuestGuard>
+    );
+  }
 
   return (
     <GuestGuard>
@@ -59,9 +73,6 @@ const SignupPage = () => {
           <Button type="submit" disabled={isSubmitting}>
             Create account
           </Button>
-          <p className="text-center text-xs text-muted">
-            Demo mode: your password is not stored, and all data stays in this browser.
-          </p>
         </form>
         <p className="mt-4 text-center text-sm text-muted">
           Already registered?{" "}

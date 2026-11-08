@@ -3,8 +3,8 @@ import routePath from "@/constants/route.json";
 
 const manifest = (): MetadataRoute.Manifest => ({
   id: routePath.Member.CheckIn,
-  name: "Heartbeat",
-  short_name: "Heartbeat",
+  name: "Here Am I",
+  short_name: "Here Am I",
   description: "Check in for service and see your duties",
   start_url: routePath.Member.CheckIn,
   scope: "/",

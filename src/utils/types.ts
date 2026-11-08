@@ -48,7 +48,11 @@ export type OrgPerson = { id: string; name: string; roleName: string };
 
 export type OrgStats = { members: number; admins: number; people: OrgPerson[] };
 
-export type Department = { id: string; name: string; roles: string[] };
+export type Unit = { id: string; name: string };
+
+export type Department = { id: string; name: string; roles: string[]; units: Unit[] };
+
+export type DepartmentInput = { name: string; roles: string[]; units: string[] };
 
 export type User = {
   id: string;
@@ -57,6 +61,7 @@ export type User = {
   phone: string;
   role: string;
   departments: string[];
+  units: string[];
   hasPasskey: boolean;
   isPrimaryAdmin?: boolean;
   photo?: string;

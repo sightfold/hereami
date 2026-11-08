@@ -30,7 +30,7 @@ const CodeSheet = ({ open, isValid, onCode, onCancel }: CodeSheetProps) => {
     setError(
       code
         ? "That code has expired or isn't for today's service. Scan the screen again."
-        : "That isn't a Heartbeat check-in code.",
+        : "That isn't a Here Am I check-in code.",
     );
     setAttempt((value) => value + 1);
   };

@@ -1,37 +1,59 @@
-import { delay, newId, updateDb } from "@/api/db";
-import { requirePermission } from "@/api/guard";
-import type { Department } from "@/utils/types";
+import { run, runOne, supabase } from "@/api/client";
+import { toDepartment } from "@/api/mappers";
+import { requireOrgId } from "@/api/session";
+import type { DepartmentInput } from "@/utils/types";
 
-export const addDepartment = async (input: Omit<Department, "id">) => {
-  await delay();
-  requirePermission("departments.manage");
-  const department: Department = { ...input, id: newId("d") };
-  updateDb((db) => db.departments.push(department));
-  return department;
+const sameName = (left: string, right: string) => left.toLowerCase() === right.toLowerCase();
+
+const unitsOf = (departmentId: string) =>
+  run(supabase.from("units").select().eq("department_id", departmentId).order("created_at"));
+
+const insertUnits = async (departmentId: string, names: string[]) => {
+  if (names.length === 0) return;
+  const orgId = requireOrgId();
+  await run(
+    supabase
+      .from("units")
+      .insert(names.map((name) => ({ org_id: orgId, department_id: departmentId, name }))),
+  );
 };
 
-export const updateDepartment = async (department: Department) => {
-  await delay();
-  requirePermission("departments.manage");
-  updateDb((db) => {
-    db.departments = db.departments.map((item) => (item.id === department.id ? department : item));
-    db.assignments = db.assignments.filter(
-      (slot) => slot.departmentId !== department.id || department.roles.includes(slot.role),
+export const addDepartment = async ({ units, ...input }: DepartmentInput) => {
+  const row = await runOne(
+    supabase
+      .from("departments")
+      .insert({ ...input, org_id: requireOrgId() })
+      .select(),
+  );
+  await insertUnits(row.id, units);
+  return toDepartment(row, await unitsOf(row.id));
+};
+
+export const updateDepartment = async ({
+  id,
+  units,
+  ...input
+}: DepartmentInput & { id: string }) => {
+  const row = await runOne(supabase.from("departments").update(input).eq("id", id).select());
+  const current = await unitsOf(id);
+  const dropped = current.filter((unit) => !units.some((name) => sameName(name, unit.name)));
+  const added = units.filter((name) => !current.some((unit) => sameName(name, unit.name)));
+  if (dropped.length > 0) {
+    await run(
+      supabase
+        .from("units")
+        .delete()
+        .in(
+          "id",
+          dropped.map((unit) => unit.id),
+        ),
     );
-  });
-  return department;
+  }
+  await insertUnits(id, added);
+  return toDepartment(row, await unitsOf(id));
 };
 
 export const removeDepartment = async (id: string) => {
-  await delay();
-  requirePermission("departments.manage");
-  updateDb((db) => {
-    db.departments = db.departments.filter((item) => item.id !== id);
-    db.users = db.users.map((user) => ({
-      ...user,
-      departments: user.departments.filter((item) => item !== id),
-    }));
-    db.assignments = db.assignments.filter((slot) => slot.departmentId !== id);
-  });
+  await runOne(supabase.from("departments").delete().eq("id", id).select("id"));
   return id;
 };

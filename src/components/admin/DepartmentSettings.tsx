@@ -13,7 +13,7 @@ import Sheet from "@/components/ui/Sheet";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { selectDepartments, selectUsers } from "@/store/selectors";
 import { addDepartment, removeDepartment, updateDepartment } from "@/store/thunks";
-import type { Department } from "@/utils/types";
+import type { Department, DepartmentInput } from "@/utils/types";
 
 const DepartmentSettings = () => {
   const dispatch = useAppDispatch();
@@ -29,12 +29,12 @@ const DepartmentSettings = () => {
     .filter((item) => item.id !== editingId)
     .map((item) => item.name.toLowerCase());
 
-  const handleSave = async (input: Omit<Department, "id">) => {
+  const handleSave = async (input: DepartmentInput) => {
     if (!editing) return;
     const pending =
       editing === "new"
         ? dispatch(addDepartment(input))
-        : dispatch(updateDepartment({ ...editing, ...input }));
+        : dispatch(updateDepartment({ ...input, id: editing.id }));
     if (await run(pending)) setEditing(null);
   };
 
@@ -54,7 +54,9 @@ const DepartmentSettings = () => {
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="text-sm">
           <p className="font-medium">Departments</p>
-          <p className="text-muted">Add, rename or remove departments and their roster roles.</p>
+          <p className="text-muted">
+            Add, rename or remove departments, their roster roles and units.
+          </p>
         </div>
         <Button size="sm" variant="outline" onClick={() => setEditing("new")}>
           <Plus className="size-4" /> Add
@@ -83,6 +85,11 @@ const DepartmentSettings = () => {
                   </div>
                 ) : (
                   <p className="mt-1 text-xs text-muted">No roles · everyone serves together</p>
+                )}
+                {department.units.length > 0 && (
+                  <p className="mt-1.5 text-xs text-muted">
+                    Units: {department.units.map((unit) => unit.name).join(", ")}
+                  </p>
                 )}
               </div>
               <Tooltip title="Edit" arrow>

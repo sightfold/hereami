@@ -50,6 +50,12 @@ const LoginPage = () => {
             Register your organization
           </Link>
         </p>
+        <p className="mt-2 text-center text-sm text-muted">
+          Invited by your church?{" "}
+          <Link href={routePath.Auth.Join} className="font-medium text-fg underline">
+            Set up your account
+          </Link>
+        </p>
       </AuthFrame>
     </GuestGuard>
   );

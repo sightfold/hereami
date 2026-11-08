@@ -37,7 +37,7 @@ const SuspendedPage = () => {
           <ShieldAlert className="size-5" />
         </span>
         <p className="text-sm text-muted">
-          Contact Heartbeat support to restore access. Your data has been kept.
+          Contact Here Am I support to restore access. Your data has been kept.
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={() => dispatch(loadAll())}>Check again</Button>

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { selectActiveOrg, selectSettings, selectTodayService } from "@/store/selectors";
+import { selectSettings, selectTodayService } from "@/store/selectors";
 import { checkIn } from "@/store/thunks";
-import { isValidCode } from "@/utils/checkInCode";
+import { isCodeFormat } from "@/utils/checkInCode";
 import { getPosition, haversineM, locationError } from "@/utils/geo";
 import type { CheckInMethod } from "@/utils/types";
 
@@ -14,9 +14,9 @@ const useCheckIn = () => {
   const dispatch = useAppDispatch();
   const service = useAppSelector(selectTodayService);
   const settings = useAppSelector(selectSettings);
-  const org = useAppSelector(selectActiveOrg);
   const [step, setStep] = useState<Step>("idle");
   const [distM, setDistM] = useState<number | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [method, setMethod] = useState<Exclude<CheckInMethod, "override">>("gps");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
@@ -32,6 +32,7 @@ const useCheckIn = () => {
       const { coords } = await getPosition();
       const dist = haversineM(coords.latitude, coords.longitude, settings.lat, settings.lng);
       setDistM(dist);
+      setCoords({ lat: coords.latitude, lng: coords.longitude });
       setMethod("gps");
       setStep(dist <= settings.radiusM ? "scanning" : "outside");
     } catch (caught) {
@@ -41,7 +42,7 @@ const useCheckIn = () => {
 
   const chooseCode = () => setStep("code");
 
-  const checkCode = (value: string) => !!org && !!service && isValidCode(org.id, service.id, value);
+  const checkCode = (value: string) => !!service && isCodeFormat(value);
 
   const acceptCode = (value: string) => {
     setCode(value);
@@ -56,7 +57,8 @@ const useCheckIn = () => {
       checkIn({
         serviceId: service.id,
         method,
-        distM: method === "gps" ? (distM ?? undefined) : undefined,
+        lat: method === "gps" ? coords?.lat : undefined,
+        lng: method === "gps" ? coords?.lng : undefined,
         code: method === "qr" ? code : undefined,
       }),
     );

@@ -47,7 +47,9 @@ const AttendanceDetail = ({ record, userMap, serviceMap, onClose }: AttendanceDe
           <Avatar name={user?.name ?? "?"} src={user?.photo} className="size-10" />
           <div className="min-w-0">
             <p className="text-lg leading-tight">{user?.name}</p>
-            <p className="text-sm text-muted">{user && departmentNames(user.departments)}</p>
+            <p className="text-sm text-muted">
+              {user && departmentNames(user.departments, user.units)}
+            </p>
           </div>
         </div>
         <dl>

@@ -1,65 +1,73 @@
-import { delay, newId, readRoot, updateRoot, createBlankTenant } from "@/api/db";
-import { clearSession, writeSession } from "@/api/session";
-import { adminRoleId } from "@/constants/permissions";
-import type { SignInForm, SignUpForm } from "@/utils/schemas";
-import type { User } from "@/utils/types";
+import type { AuthError } from "@supabase/supabase-js";
+import { run, runOne, supabase } from "@/api/client";
+import { clearOwnerView, resolveSession } from "@/api/session";
+import routePath from "@/constants/route.json";
+import type { JoinForm, SignInForm, SignUpForm } from "@/utils/schemas";
 
-const sameEmail = (left: string, right: string) => left.toLowerCase() === right.toLowerCase();
+export type SignUpResult = { needsConfirmation: boolean };
 
-export const findMember = (email: string) => {
-  const root = readRoot();
-  for (const organization of root.organizations) {
-    const user = root.tenants[organization.id]?.users.find((item) => sameEmail(item.email, email));
-    if (user) return { organization, user };
-  }
-  return null;
+const authMessages: Record<string, string> = {
+  "Invalid login credentials": "Wrong email or password",
+  "Email not confirmed": "Confirm your email first. Check your inbox for the link we sent.",
+  "User already registered": "That email already has an account",
 };
 
-export const isEmailTaken = (email: string) =>
-  !!findMember(email) || readRoot().owners.some((owner) => sameEmail(owner.email, email));
+const toAuthError = (error: AuthError) => new Error(authMessages[error.message] ?? error.message);
 
-export const signIn = async ({ email }: SignInForm) => {
-  await delay();
-  const owner = readRoot().owners.find((item) => sameEmail(item.email, email));
-  if (owner) {
-    writeSession({ kind: "owner", ownerId: owner.id });
-    return;
-  }
-  const match = findMember(email);
-  if (!match) throw new Error("We couldn't find an account with that email");
-  if (match.organization.status === "suspended") {
-    throw new Error(`${match.organization.name} is suspended. Contact Heartbeat support.`);
-  }
-  writeSession({ kind: "member", userId: match.user.id, orgId: match.organization.id });
+const leave = async (message: string) => {
+  await supabase.auth.signOut();
+  throw new Error(message);
 };
 
-export const signUp = async (form: SignUpForm) => {
-  await delay();
-  if (isEmailTaken(form.email)) throw new Error("That email already has an account");
-  const orgId = newId("org-");
-  const firstAdmin: User = {
-    id: newId("u"),
-    name: form.name,
-    email: form.email,
-    phone: form.phone,
-    role: adminRoleId,
-    departments: [],
-    hasPasskey: false,
-  };
-  updateRoot((root) => {
-    root.organizations.push({
-      id: orgId,
-      name: form.orgName,
-      status: "active",
-      createdAt: new Date().toISOString(),
-      contactName: form.name,
-      contactEmail: form.email,
-    });
-    root.tenants[orgId] = createBlankTenant(firstAdmin);
+export const signIn = async ({ email, password }: SignInForm) => {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw toAuthError(error);
+  const session = await resolveSession();
+  if (!session) {
+    return leave("This account isn't linked to a church yet. Ask your administrator to add you.");
+  }
+  if (session.kind !== "member") return;
+  const org = await runOne<{ name: string; status: string }>(
+    supabase.from("organizations").select("name, status").eq("id", session.orgId),
+  );
+  if (org.status === "suspended") {
+    return leave(`${org.name} is suspended. Contact Here Am I support.`);
+  }
+};
+
+const register = async (
+  email: string,
+  password: string,
+  data: Record<string, string>,
+): Promise<SignUpResult> => {
+  const { data: result, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data, emailRedirectTo: `${window.location.origin}${routePath.Auth.Login}` },
   });
-  writeSession({ kind: "member", userId: firstAdmin.id, orgId });
+  if (error) throw toAuthError(error);
+  if (result.user?.identities?.length === 0) throw new Error("That email already has an account");
+  return { needsConfirmation: !result.session };
+};
+
+export const signUp = (form: SignUpForm) =>
+  register(form.email, form.password, {
+    org_name: form.orgName,
+    name: form.name,
+    phone: form.phone,
+  });
+
+export const joinOrganization = async ({ email, password }: JoinForm) => {
+  const invited = await run(supabase.rpc("is_invited", { email_address: email }));
+  if (!invited) {
+    throw new Error(
+      "We couldn't find an invitation for that email. Ask your church administrator to add you first.",
+    );
+  }
+  return register(email, password, {});
 };
 
 export const signOut = async () => {
-  clearSession();
+  clearOwnerView();
+  await supabase.auth.signOut();
 };

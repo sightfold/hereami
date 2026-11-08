@@ -1,6 +1,6 @@
 {
   "Public": { "Home": "/" },
-  "Auth": { "Login": "/login", "Signup": "/signup", "Suspended": "/suspended" },
+  "Auth": { "Login": "/login", "Signup": "/signup", "Join": "/join", "Suspended": "/suspended" },
   "Owner": { "Console": "/owner" },
   "Member": {
     "CheckIn": "/app",

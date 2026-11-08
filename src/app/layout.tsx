@@ -16,7 +16,7 @@ const fontVars = [geistSans, geistMono, arima, anton].map((font) => font.variabl
 
 export const metadata: Metadata = {
   description: "Attendance and duty rosters for churches and religious organizations",
-  appleWebApp: { capable: true, title: "Heartbeat", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Here Am I", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

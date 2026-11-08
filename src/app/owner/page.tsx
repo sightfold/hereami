@@ -22,13 +22,7 @@ import Sheet from "@/components/ui/Sheet";
 import type { RootState } from "@/store";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { selectHomePath, selectOrganizations, selectOrgStats } from "@/store/selectors";
-import {
-  onboardOrganization,
-  resetDemoData,
-  setOrgStatus,
-  startSimulation,
-  updateBranding,
-} from "@/store/thunks";
+import { onboardOrganization, setOrgStatus, startSimulation, updateBranding } from "@/store/thunks";
 import { errorMessage } from "@/utils/error";
 import type { BrandingForm as BrandingValues, OnboardForm } from "@/utils/schemas";
 import type { Organization, OrgStatus } from "@/utils/types";
@@ -86,18 +80,6 @@ const OwnerPage = () => {
   const handleBranding = async (orgId: string, values: BrandingValues) => {
     await dispatch(updateBranding({ orgId, values })).unwrap();
     setPanel(null);
-  };
-
-  const handleReset = async () => {
-    const isConfirmed = await confirm({
-      title: "Reset all organizations?",
-      message:
-        "Every organization goes back to the demo data. Changes made in this browser are lost.",
-      confirmLabel: "Reset",
-      isDanger: true,
-    });
-    if (!isConfirmed) return;
-    attempt(() => dispatch(resetDemoData()).unwrap());
   };
 
   const summary = [
@@ -162,15 +144,6 @@ const OwnerPage = () => {
         </section>
         <aside className="flex flex-col gap-4">
           <AccessLog />
-          <Card>
-            <h2 className="font-semibold">Demo data</h2>
-            <p className="mt-1 mb-3 text-xs text-muted">
-              Puts every organization back to the starting data in this browser.
-            </p>
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              Reset demo data
-            </Button>
-          </Card>
         </aside>
       </div>
       <Sheet

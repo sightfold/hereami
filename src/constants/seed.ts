@@ -17,16 +17,27 @@ export const seedSettings: Settings = {
 };
 
 export const seedDepartments: Department[] = [
-  { id: "audio", name: "Audio", roles: ["Front of House", "Monitors", "Stage Tech"] },
-  { id: "cameras", name: "Cameras", roles: ["Camera 1", "Camera 2", "Camera 3", "Director"] },
-  { id: "graphics", name: "Graphics", roles: ["Lyrics", "Lower Thirds"] },
-  { id: "streaming", name: "Streaming", roles: ["Stream Operator", "Chat Moderator"] },
-  { id: "children", name: "Children's Church", roles: ["Teacher", "Helper"] },
+  { id: "audio", name: "Audio", roles: ["Front of House", "Monitors", "Stage Tech"], units: [] },
+  {
+    id: "cameras",
+    name: "Cameras",
+    roles: ["Camera 1", "Camera 2", "Camera 3", "Director"],
+    units: [
+      { id: "cameras-main", name: "Main Hall" },
+      { id: "cameras-overflow", name: "Overflow" },
+    ],
+  },
+  { id: "graphics", name: "Graphics", roles: ["Lyrics", "Lower Thirds"], units: [] },
+  { id: "streaming", name: "Streaming", roles: ["Stream Operator", "Chat Moderator"], units: [] },
+  { id: "children", name: "Children's Church", roles: ["Teacher", "Helper"], units: [] },
 ];
 
-const withEmails = (people: Omit<User, "email">[], domain: string): User[] =>
+type SeedPerson = Omit<User, "email" | "units"> & { units?: string[] };
+
+const withEmails = (people: SeedPerson[], domain: string): User[] =>
   people.map((person) => ({
     ...person,
+    units: person.units ?? [],
     email: `${person.name.toLowerCase().replaceAll(" ", ".")}@${domain}`,
   }));
 
@@ -91,6 +102,7 @@ export const seedUsers: User[] = withEmails(
       phone: "+2348030000007",
       role: "member",
       departments: ["cameras"],
+      units: ["cameras-main"],
       hasPasskey: true,
     },
     {
@@ -99,6 +111,7 @@ export const seedUsers: User[] = withEmails(
       phone: "+2348030000008",
       role: "member",
       departments: ["cameras"],
+      units: ["cameras-overflow"],
       hasPasskey: true,
     },
     {
@@ -229,6 +242,7 @@ export const livingWatersUsers: User[] = withEmails(
       phone: "+2348040000002",
       role: "admin",
       departments: ["choir"],
+      units: ["choir-sopranos"],
       hasPasskey: true,
     },
     {
@@ -268,14 +282,23 @@ export const livingWatersUsers: User[] = withEmails(
 );
 
 export const livingWatersDepartments: Department[] = [
-  { id: "ushers", name: "Ushers", roles: ["Front Door", "Main Hall"] },
-  { id: "choir", name: "Choir", roles: ["Lead Vocal", "Backing Vocal", "Keys"] },
+  { id: "ushers", name: "Ushers", roles: ["Front Door", "Main Hall"], units: [] },
+  {
+    id: "choir",
+    name: "Choir",
+    roles: ["Lead Vocal", "Backing Vocal", "Keys"],
+    units: [
+      { id: "choir-sopranos", name: "Sopranos" },
+      { id: "choir-altos", name: "Altos" },
+      { id: "choir-tenors", name: "Tenors" },
+    ],
+  },
 ];
 
 export const starterDepartments: Department[] = [
-  { id: "ushers", name: "Ushers", roles: ["Front Door", "Main Hall"] },
-  { id: "choir", name: "Choir", roles: ["Lead Vocal", "Backing Vocal"] },
-  { id: "media", name: "Media", roles: ["Sound", "Camera", "Slides"] },
+  { id: "ushers", name: "Ushers", roles: ["Front Door", "Main Hall"], units: [] },
+  { id: "choir", name: "Choir", roles: ["Lead Vocal", "Backing Vocal"], units: [] },
+  { id: "media", name: "Media", roles: ["Sound", "Camera", "Slides"], units: [] },
 ];
 
 const dayKey = (date: Date) => format(date, "yyyy-MM-dd");

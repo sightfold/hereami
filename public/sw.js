@@ -1,4 +1,4 @@
-const cacheName = "heartbeat-v1";
+const cacheName = "hereami-v1";
 const offlineUrl = "/offline.html";
 const precache = [offlineUrl, "/icon-192.png", "/icon-512.png", "/icon.svg"];
 

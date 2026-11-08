@@ -38,7 +38,7 @@ const TagInput = ({ value, onChange, placeholder }: TagInputProps) => {
     else setDraft(text);
   };
 
-  const handleKeyDown =(event: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
       addTags(draft);

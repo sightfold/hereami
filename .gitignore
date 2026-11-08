@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local tooling
+.claude/
+.vscode/
+.idea/
+*.log
+
+# supabase cli
+supabase/.branches
+supabase/.temp
