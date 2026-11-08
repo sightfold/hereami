@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import { Anton, Arima, Geist, Geist_Mono as GeistMono } from "next/font/google";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import Providers from "@/components/layout/Providers";
+import ServiceWorker from "@/components/layout/ServiceWorker";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -30,6 +31,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => (
     <body className="min-h-full font-sans">
       <InitColorSchemeScript attribute="class" defaultMode="system" />
       <Providers>{children}</Providers>
+      <ServiceWorker />
     </body>
   </html>
 );
